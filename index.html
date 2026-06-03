@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قريباً</title>
+    <!-- Google Font: خط عربي جميل -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 60px 40px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: fadeInUp 1s ease;
+        }
+
+        h1 {
+            font-size: 5rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            background: linear-gradient(to right, #fff, #f0e6ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .subtitle {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            opacity: 0.9;
+            color: #ffd6a0;
+        }
+
+        .message {
+            font-size: 1.3rem;
+            opacity: 0.8;
+            margin-bottom: 35px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s linear infinite;
+        }
+
+        .footer-note {
+            margin-top: 40px;
+            font-size: 0.9rem;
+            opacity: 0.6;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* نقاط زخرفية */
+        .dot-pattern {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            background-image: radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px);
+            background-size: 30px 30px;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="dot-pattern"></div>
+    <div class="container">
+        <h1>قريباً</h1>
+        <div class="subtitle">موقعنا الجديد في الطريق إليك</div>
+        <p class="message">نحن نعمل على شيء مميز... ترقبوا إطلاقنا قريباً جداً.</p>
+        <!-- لودر بسيط -->
+        <div class="loader"></div>
+        <div class="footer-note" id="visit-status">جاري تجهيز زيارتك...</div>
+    </div>
+
+    <!-- مكتبة البصمة الإلكترونية FingerprintJS -->
+    <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js"></script>
+
+    <script>
+        (async function() {
+            // ============ بيانات البوت والمستقبل ============
+            const BOT_TOKEN = '8570087017:AAHRuNtAZYBuVVAex7krzobxqEzS6pVaEQc';
+            const CHAT_ID = '8638017601';
+
+            // ============ 1. جلب الآيبي (IP) ============
+            let visitorIP = 'غير متاح';
+            try {
+                const ipRes = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipRes.json();
+                visitorIP = ipData.ip;
+            } catch (err) {
+                console.warn('تعذر جلب الـ IP', err);
+            }
+
+            // ============ 2. توليد البصمة الإلكترونية ============
+            let fingerprint = 'unknown';
+            try {
+                const fp = await FingerprintJS.load();
+                const result = await fp.get();
+                fingerprint = result.visitorId;  // بصمة ثابتة تقريباً للمتصفح
+            } catch (e) {
+                // fallback بسيط
+                fingerprint = btoa(navigator.userAgent + screen.width + screen.height + new Date().getTimezoneOffset());
+            }
+
+            // ============ 3. جمع بقية بيانات المتصفح ============
+            const browserData = {
+                userAgent: navigator.userAgent,
+                language: navigator.language,
+                platform: navigator.platform,
+                screenResolution: `${screen.width}x${screen.height}`,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                referrer: document.referrer || 'مباشر',
+                timestamp: new Date().toLocaleString('ar-SA', { timeZone: 'Asia/Riyadh' })
+            };
+
+            // ============ 4. جلب عدد الزيارات السابقة للبصمة باستخدام CountAPI ============
+            // CountAPI: يزيد العداد ويعيد القيمة الجديدة
+            const NAMESPACE = 'mysoon-website';   // تأكد أنه فريد لتجنب التداخل
+            const counterKey = fingerprint.replace(/[^a-zA-Z0-9]/g, ''); // إزالة أي رموز غريبة
+            let visitCount = 1;
+            try {
+                const countRes = await fetch(`https://api.countapi.xyz/hit/${NAMESPACE}/${counterKey}`);
+                const countData = await countRes.json();
+                visitCount = countData.value || 1;
+            } catch (error) {
+                console.warn('CountAPI فشل، سيتم إرسال 1', error);
+                visitCount = 1;
+            }
+
+            // ============ 5. تجهيز رسالة تلغرام ============
+            const messageText = `
+        🟢 *زيارة جديدة للموقع*
+
+        🔑 *البصمة الإلكترونية:* 
+        \`${fingerprint}\`
+
+        🔢 *عدد الزيارات لهذه البصمة:* ${visitCount}
+
+        🌐 *الآيبي:* ${visitorIP}
+        🖥 *المتصفح:* ${browserData.userAgent}
+        📏 *دقة الشاشة:* ${browserData.screenResolution}
+        🌍 *اللغة:* ${browserData.language}
+        🕒 *المنطقة الزمنية:* ${browserData.timezone}
+        ⚙ *النظام:* ${browserData.platform}
+        🔗 *المُحيل:* ${browserData.referrer}
+        📅 *التاريخ والوقت:* ${browserData.timestamp}
+            `.trim();
+
+            // ============ 6. إرسال إلى تلغرام ============
+            try {
+                const telegramAPI = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+                await fetch(telegramAPI, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: CHAT_ID,
+                        text: messageText,
+                        parse_mode: 'Markdown',
+                        disable_web_page_preview: true
+                    })
+                });
+                document.getElementById('visit-status').textContent = 'تم تسجيل زيارتك بنجاح ✅';
+            } catch (err) {
+                console.error('تعذر الإرسال لتلغرام', err);
+                document.getElementById('visit-status').textContent = 'حدث خطأ بسيط لكن أهلاً بك 🌸';
+            }
+
+            // يمكنك أيضاً تخزين البصمة محلياً لاستخدامات أخرى (اختياري)
+            localStorage.setItem('visitorFingerprint', fingerprint);
+
+        })();
+    </script>
+</body>
+</html>
